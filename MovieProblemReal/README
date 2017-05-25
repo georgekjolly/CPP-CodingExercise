@@ -1,2 +1,2 @@
-Find all the movies connected(directly/indirectly) to a give Movie.
+Find all the movies connected(directly/indirectly) to a given Movie.
 Graph implementaion using DFS
