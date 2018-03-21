@@ -1,205 +1,149 @@
 //
 //  main.cpp
-//  HashTable_Implementation
+//  testHashMap
 //
-//  Created by George Jolly on 6/6/17.
-//  Copyright © 2017 George Jolly. All rights reserved.
+//  Created by George Jolly on 3/21/18.
+//  Copyright © 2018 George Jolly. All rights reserved.
 //
 
 #include <iostream>
 #include <list>
-#include <functional>
 
-#define TABLSIZE 128
+# define TABLESIZE 200
+
 
 using namespace std;
-// Hash table/map implementation using single link list.
 
 template <class K, class V>
-class HashNode
+struct HashStruct
 {
-public:
-    
-    HashNode( const K& k_i, const V& v_i)
-    {
-        k = k_i;
-        v = v_i;
-        pNext = 0;
-    }
-    
-    const K& getKey()
-    {
-        return k;
-    }
-    
-    const V& getValue()
-    {
-        return v;
-    }
-    
-    void setKey( const K& k_i )
-    {
-        k = k_i;
-    }
-    
-    void setValue( const V& v_i )
-    {
-        v = v_i;
-    }
-    
-    HashNode* pNext;
-    
-private:
-    
-    K k;
-    V v;
-    
+    K key;
+    V value;
 };
 
 
-//template< class hK, class hV >
-template <class K, class V>
-class HashTable
+template <class K, class V >
+class HashMap
 {
 public:
-    HashTable()
+    
+    HashMap()
     {
-        for( int i = 0 ; i < TABLSIZE ; ++i )
-        {
-            m_List[i] = NULL;
-        }
+    
     }
     
-    
-    void put( const K& k , const V& v )
+    bool erase( K key_i )
     {
-        std::hash<K> objHash;
-        size_t hashCode = objHash(k)%TABLSIZE;
-    
-        HashNode<K, V>* objHashNode = m_List[hashCode];
-        if( objHashNode == NULL )
-        {
-            HashNode<K, V>* objHashNodeNew = new HashNode<K, V>( k, v);
-            m_List[hashCode] = objHashNodeNew;
-            return;
-        }
-        else
-        {
-            HashNode<K, V>* prev = 0;
-            bool b = false;
-            while( objHashNode )
-            {
-                if( objHashNode->getKey() == k )
-                {
-                    //update
-                    objHashNode->setValue( v );
-                    b = true;
-                    return;
-                }
-                
-                prev = objHashNode;
-                objHashNode = objHashNode->pNext;
-            }
-            prev = new HashNode<K, V>( k, v);
-        }
+        std::hash<K> mObj;
+        int hashCode = mObj(key_i)%TABLESIZE;
         
-    }
-    
-    bool get( const K &k_i, V& v_o )
-    {
-        std::hash<K> objHash;
-        size_t hashCode = objHash(k_i)%TABLSIZE;;
-        
-        HashNode<K, V>* objHashNode = m_List[hashCode];
-        
-        if( objHashNode == NULL )
+        if( m_HasMap[hashCode].empty())
         {
             return false;
         }
-        else
+
+        auto it = m_HasMap[hashCode].begin();
+        
+        while( it != m_HasMap[hashCode].end())
         {
-            while( objHashNode )
+            if( it->key == key_i )
             {
-                if( objHashNode->getKey() == k_i )
-                {
-                    v_o = objHashNode->getValue();
-                    return true;
-                }
-                objHashNode = objHashNode->pNext;
+                m_HasMap[hashCode].erase( it );
+                return true;
             }
+            ++it;
         }
         
         return false;
+        
     }
     
-    
-    void remove( const K& k )
+    V get( K key_i )
     {
-        std::hash<K> objHash;
-        size_t hashCode = objHash( k )%TABLSIZE;
+        std::hash<K> mObj;
+        int hashCode = mObj(key_i)%TABLESIZE;
         
-        HashNode<K, V>* objHashNode = m_List[hashCode];
-
-        
-        if( objHashNode == NULL )
+        if( m_HasMap[hashCode].empty())
         {
-            std::cout << " key is not present \n..";
-            return;
+            return -1;
         }
         
-        // Navigate to the item and delete it.
-        HashNode<K, V>* prev = 0;
-        while( objHashNode )
+        auto it = m_HasMap[hashCode].begin();
+        
+        while( it != m_HasMap[hashCode].end())
         {
-            if( objHashNode->getKey() == k )
+            if( it->key == key_i )
             {
-                // remove here.
-                HashNode<K, V>* tmp = objHashNode;
-                if( prev == NULL )
-                {
-                    m_List[hashCode] = objHashNode->pNext;
-                    delete tmp;
-                }
-                else
-                {
-                    prev->pNext = objHashNode->pNext;
-                    delete tmp;
-                }
-                return;
+                return it->value;
             }
-            prev = objHashNode;
-            objHashNode = objHashNode->pNext;
+            ++it;
         }
+        
+        std::cout << "Value for the key = " << key_i << " not found...\n";
+        
+        return -1;
+    }
+    
+    void put( K key_i, V val_i )
+    {
+        std::hash<K> mObj;
+        int hashCode = mObj(key_i)%TABLESIZE;
+        
+        bool bFound = false;
+        
+        if( m_HasMap[hashCode].empty())
+        {
+            HashStruct<K,V> objHashSt;
+            objHashSt.key = key_i;
+            objHashSt.value = val_i;
+            m_HasMap[hashCode].push_back( objHashSt );
+        }
+        else
+        {
+            auto it = m_HasMap[hashCode].begin();
             
+            while( it != m_HasMap[hashCode].end())
+            {
+                if( it->key == key_i )
+                {
+                    it->value = val_i;
+                    bFound = true;
+                    break;
+                }
+                ++it;
+            }
+            
+            if( bFound == false )
+            {
+                HashStruct<K,V> objHashSt;
+                objHashSt.key = key_i;
+                objHashSt.value = val_i;
+                m_HasMap[hashCode].push_back( objHashSt );
+            }
+        }
     }
     
 private:
-    HashNode<K,V>* m_List[TABLSIZE];
+    
+    list<HashStruct<K,V>> m_HasMap[TABLESIZE];
+
 };
 
 
 
 int main(int argc, const char * argv[]) {
 
-    HashTable<string, string> myHashTable;
     
-    string strv;
-    myHashTable.put("one","George");
-    myHashTable.put("two","Sonia");
-    myHashTable.put("three","Ryan");
-    myHashTable.put("one","George_1");
-    myHashTable.remove("three");
+    HashMap<int,int> hashMap;
+    hashMap.put(100,2);
+    hashMap.put(1000,3);
+    std::cout << "Get 1000 = " <<  hashMap.get(1000) <<  std::endl;
+    //hashMap.erase( 100 );
+    std::cout << "Erasing 100 " << hashMap.erase(100) << std::endl;
+    std::cout << "Erasing 100 " << hashMap.erase(100) << std::endl;
     
-    myHashTable.get( "one", strv );
-    std::cout << strv << std::endl;;
-    
-    strv = "";
-    myHashTable.get( "two", strv );
-    std::cout << strv << std::endl;;
-    
-    strv = "";
-    myHashTable.get( "three", strv );
-    std::cout << strv << std::endl;;
-    
+    std::cout << "Erasing 1000 " << hashMap.erase(1000) << std::endl;
+    std::cout << "Erasing 1000 " << hashMap.erase(1000) << std::endl;
+
     return 0;
 }
